@@ -8,12 +8,17 @@ class JackComplier:
     def getJackFiles(direccion):
         files = []
         try:
-            files = os.listdir(direccion.replace("\\","")) 
+            prueba = os.listdir(direccion.replace("\\","")) 
+            for dirpath,_,filenames in os.walk(direccion.replace("\\","")):
+                for f in filenames:
+                    files.append(os.path.abspath(os.path.join(dirpath, f)))
         except:
-            files = os.listdir(direccion) 
+            #files = os.listdir(direccion) 
+            for dirpath,_,filenames in os.walk(direccion):
+                for f in filenames:
+                    files.append(os.path.abspath(os.path.join(dirpath, f)))
 
         result = []
-
         if (files == []):
             print("Files not found")
             return result
@@ -22,10 +27,10 @@ class JackComplier:
 
             if (f.find('.jack') != -1):
                 result.append(f)
-
         return result
 
-def main():
+
+if __name__ == "__main__": 
     if (len(sys.argv) == 1):
         print("Usage:python JackCompiler [filename.jack|directory]")
     else:
@@ -61,14 +66,11 @@ def main():
 
 
         for f in jackFiles:
-            fileOutPath = f[0:f.find('.jack')] + '.vm'
+            
+            fileOutPath =  f[0:f.find('.jack')] + '.vm'
             fileOut = open(fileOutPath, 'w+')
-
             compilationEngine = CompilationEngine(f,fileOut)
             compilationEngine.compileClass()
-
+            
             print("File created : " + fileOutPath)
-
-if __name__ == "__main__": 
-    main()
 

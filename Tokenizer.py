@@ -47,22 +47,21 @@ class Tokenizer:
         self.keyWordReg = ""
         self.tokenPatterns = None
         try:
-            scanner = open(inFile,'r')
-            input(inFile)
-            #input(type(inFile))      
+            scanner = open(inFile,'r')     
             for lineN in scanner.readlines():
-                line = noComments(lineN).strip()
+                line = self.noComments(lineN)
 
                 if len(line) > 0:
                     self.preprocessed += line + "\n"
 
+            
             self.preprocessed = self.noBlockComments(self.preprocessed).strip()
 
             self.initRegs()
             m = self.tokenPatterns.search(self.preprocessed)
-            input(type(self.preprocessed))
-            while m.find():
-                tokens.append(m.group())
+
+            while m.search():
+                self.tokens.append(m.group())
 
         except:
             traceback.print_exc()
@@ -116,90 +115,89 @@ class Tokenizer:
         self.tokenPatterns = re.compile(idReg + "|" + self.keyWordReg + symbolReg + "|" + intReg + "|" + strReg)
 
     def hasMoreToken(self):
-        print(self.pointer, len(self.tokens))
         return self.pointer < len(self.tokens)
 
     def advance(self):
         if self.hasMoreToken():
-            self.currentToken = self.tokens[pointer]
+            self.currentToken = self.tokens[self.pointer]
             self.pointer += 1
         else:
             raise Exception("No more tokens")
 
-        if re.match(keyWordReg, currentToken):
-            currentTokenType = TYPE.self.KEYWORD
-        elif re.match(symbolReg, currentToken):
+        if re.match(self.keyWordReg, self.currentToken):
+            currentTokenType = self.TYPE.KEYWORD
+        elif re.match("[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]", self.currentToken):
             currentTokenType = TYPE.SYMBOL
-        elif re.match(intReg, currentToken):
+        elif re.match("[0-9]+", self.currentToken):
             currentTokenType = TYPE.INT_CONST
-        elif re.match(strReg, currentToken):
+        elif re.match("\"[^\"\n]*\"", self.currentToken):
             currentTokenType = TYPE.STRING_CONST
-        elif re.match(idReg, currentToken):
+        elif re.match("[a-zA-Z_]\\w*", self.currentToken):
             currentTokenType = TYPE.IDENTIFIER
         else:
-            raise Exception("Unknow token:" + currentToken)
+            raise Exception("Unknow token:" + self.currentToken)
 
-        def getCurrentToken(self):
-            return currentToken
+    def getCurrentToken(self):
+        return self.currentToken
 
-        def tokenType(self):
-            return currentTokenType
+    def tokenType(self):
+        return self.currentTokenType
 
-        def keyWord(self):
-            if currentTokenType == TYPE.self.KEYWORD:
-                return keyWordMap[currentToken]
-            else:
-                raise Exception("Current token is not a keyword")
+    def keyWord(self):
+        if currentTokenType == TYPE.self.KEYWORD:
+            return keyWordMap[self.currentToken]
+        else:
+            raise Exception("Current token is not a keyword")
 
-        def symbol(self):
-            if currentTokenType == TYPE.SYMBOL:
-                return currentToken[0]
-            else:
-                raise Exception("Current token is not  a symbol")
+    def symbol(self):
+        if currentTokenType == TYPE.SYMBOL:
+            return self.currentToken[0]
+        else:
+            raise Exception("Current token is not  a symbol")
 
-        def identifier(self):
-            if currentTokenType == TYPE.IDENTIFIER:
-                return currentToken
-            else:
-                raise Exception("Current token is not a identifier")
+    def identifier(self):
+        if currentTokenType == TYPE.IDENTIFIER:
+            return self.currentToken
+        else:
+            raise Exception("Current token is not a identifier")
 
-        def intVal(self):
-            if currentTokenType == TYPE.INT_CONST:
-                return int(currentToken)
-            else:
-                raise Exception("Current token is not an integer constant")
+    def intVal(self):
+        if currentTokenType == TYPE.INT_CONST:
+            return int(self.currentToken)
+        else:
+            raise Exception("Current token is not an integer constant")
 
-        def stringVal(self):
-            if currentTokenType == TYPE.STRING_CONST:
-                return currentToken[1: len(currentToken) - 1]
-            else:
-                raise Exception("Current token is not a string constant")
+    def stringVal(self):
+        if currentTokenType == TYPE.STRING_CONST:
+            return self.currentToken[1: len(self.currentToken) - 1]
+        else:
+            raise Exception("Current token is not a string constant")
 
-        def pointerBack(self):
-            if pointer > 0:
-                pointer -= 1
-                currentToken = tokens[pointer]
+    def pointerBack(self):
+        if pointer > 0:
+            pointer -= 1
+            self.currentToken = tokens[pointer]
 
-        def isOp(self):
-            return symbol() in self.opSet
+    def isOp(self):
+        return symbol() in self.opSet
 
-        def noComments(self, strIn):
-            position = strIn.find("//")
-            if position != -1:
-                strIn = strIn[0:position]
+    def noComments(self, strIn):
+        position = strIn.find("//")
+        if position != -1:
+            strIn = strIn[0:position]
 
-            return strIn
+        return strIn
 
-        def noSpaces(self, strIn):
-            result = ""
+    def noSpaces(self, strIn):
+        result = ""
 
-            if len(strIn) != 0:
-                segs = strIn.split(" ")
+        if len(strIn) != 0:
+            segs = strIn.split(" ")
 
-                for s in segs:
-                    result += s
+            for s in segs:
+                result += s
 
-            return result
+        return result
 
     def noBlockComments(self, strIn):
         startIndex = strIn.find("/*")
@@ -211,10 +209,12 @@ class Tokenizer:
         while startIndex != -1:
             if endIndex == -1:
                 return strIn[0: startIndex - 1]
-            result = result[0: startIndex] + result[endIndex + 2]
-
+            result = result[0: startIndex] + result[endIndex + 2:]
             startIndex = result.find("/*")
             endIndex = result.find("*/")
 
         
         return result
+    
+    def error(self, val):
+        print("Expected token missing : " + str(val) + " Current token:" )

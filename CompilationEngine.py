@@ -43,7 +43,7 @@ class CompilationEngine:
 
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != Tokenizer.KEYWORD.CLASS):
             print(self.tokenizer.getCurrentToken())
-            error("class")
+            self.error("class")
         
         self.tokenizer.advance()
 
