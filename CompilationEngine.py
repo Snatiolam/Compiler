@@ -242,8 +242,8 @@ class CompilationEngine:
             self.symbolTable.define(self.tokenizer.identifier(),typeT, Symbol.KIND.ARG)
 
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and tokenizer.symbol() != ')')):
-                error("',' or ')'")
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ')')):
+                self.error("',' or ')'")
 
             if (self.tokenizer.symbol() == ')'):
                 self.tokenizer.pointerBack()
@@ -354,7 +354,7 @@ class CompilationEngine:
         self.requireSymbol('(')
         self.compileExpression()
         self.requireSymbol(')')
-        self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NOT)
+        self.vmWriter.writeArithmetic(VMWriter.COMMAND.NOT)
         self.vmWriter.writeIf(continueLabel)
         self.requireSymbol('{')
         self.compileStatement()
@@ -381,13 +381,13 @@ class CompilationEngine:
 
     def compileIf(self):
 
-        elseLabel = newLabel()
-        endLabel = newLabel()
+        elseLabel = self.newLabel()
+        endLabel = self.newLabel()
 
         self.requireSymbol('(')
         self.compileExpression()
         self.requireSymbol(')')
-        self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NOT)
+        self.vmWriter.writeArithmetic(VMWriter.COMMAND.NOT)
         self.vmWriter.writeIf(elseLabel)
         self.requireSymbol('{')
         self.compileStatement()
@@ -426,7 +426,7 @@ class CompilationEngine:
                 self.compileSubroutineCall()
             else:
                 self.tokenizer.pointerBack()
-                self.vmWriter.writePush(getSeg(self.symbolTable.kindOf(tempId)), self.symbolTable.indexOf(tempId))
+                self.vmWriter.writePush(self.getSeg(self.symbolTable.kindOf(tempId)), self.symbolTable.indexOf(tempId))
 
         else:
             
@@ -451,16 +451,16 @@ class CompilationEngine:
             self.tokenizer.keyWord() == Tokenizer.KEYWORD.NULL)):
                 self.vmWriter.writePush(VMWriter.SEGMENT.CONST,0)
             elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
-                compileExpression()
-                requireSymbol(')')
+                self.compileExpression()
+                self.requireSymbol(')')
             elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL 
             and (self.tokenizer.symbol() == '-' or self.tokenizer.symbol() == '~')):
                 s = self.tokenizer.symbol()
                 self.compileTerm()
                 if (s == '-'):
-                    self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NEG)
+                    self.vmWriter.writeArithmetic(VMWriter.COMMAND.NEG)
                 else:
-                    self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NOT)
+                    self.vmWriter.writeArithmetic(VMWriter.COMMAND.NOT)
                 
             else:
                 error("integerConstant|stringConstant|keywordConstant|'(' expression ')'|unaryOp term")
@@ -476,9 +476,9 @@ class CompilationEngine:
 
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
-            self.vmWriter.writePush(self.VMWriter.SEGMENT.POINTER,0)
-            nArgs = compileExpressionList() + 1
-            requireSymbol(')')
+            self.vmWriter.writePush(VMWriter.SEGMENT.POINTER,0)
+            nArgs = self.compileExpressionList() + 1
+            self.requireSymbol(')')
             self.vmWriter.writeCall(self.currentClass + '.' + name, nArgs)
 
         elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '.'):
@@ -548,7 +548,7 @@ class CompilationEngine:
                     default:error("Unknown op!");
                 }
                 '''
-                compileTerm()
+                self.compileTerm()
                 self.vmWriter.writeCommand(opCmd,"","")
 
             else:

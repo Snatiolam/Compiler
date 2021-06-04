@@ -148,35 +148,35 @@ class Tokenizer:
         return self.currentTokenType
 
     def keyWord(self):
-        print(self.currentTokenType, self.currentToken)
+        #print(self.currentTokenType, self.currentToken)
         if self.currentTokenType == self.TYPE.KEYWORD:
             return self.KeyWordMap[self.currentToken]
         else:
             raise Exception("Current token is not a keyword")
 
     def symbol(self):
-        print(self.currentTokenType, self.currentToken)
+        #print(self.currentTokenType, self.currentToken)
         if self.currentTokenType == self.TYPE.SYMBOL:
             return self.currentToken[0]
         else:
             raise Exception("Current token is not  a symbol")
 
     def identifier(self):
-        print(self.currentTokenType, self.currentToken)
+        #print(self.currentTokenType, self.currentToken)
         if self.currentTokenType == self.TYPE.IDENTIFIER:
             return self.currentToken
         else:
             raise Exception("Current token is not a identifier")
 
     def intVal(self):
-        print(self.currentTokenType, self.currentToken)
+        #print(self.currentTokenType, self.currentToken)
         if self.currentTokenType == self.TYPE.INT_CONST:
             return int(self.currentToken)
         else:
             raise Exception("Current token is not an integer constant")
 
     def stringVal(self):
-        print(self.currentTokenType, self.currentToken)
+        #print(self.currentTokenType, self.currentToken)
         if self.currentTokenType == self.TYPE.STRING_CONST:
             return self.currentToken[1: len(self.currentToken) - 1]
         else:

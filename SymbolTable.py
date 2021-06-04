@@ -29,13 +29,13 @@ class SymbolTable:
             symbol = Symbol(typeT, kind, index) 
             self.indices[kind]= index+1
             self.subroutineSymbols[name] = symbol
-            print("------------",name,"--------------", symbol.typeStr)
+            #print("------------",name,"--------------", symbol.typeStr)
         elif (kind == Symbol.KIND.STATIC) or (kind == Symbol.KIND.FIELD):
             index = indices[kind]
             symbol = Symbol(typeT, kind, index)
             indices[kind] = index + 1
             classSymbols[name] = symbol
-            print("------------",name,"--------------", symbol.typeStr)
+            #print("------------",name,"--------------", symbol.typeStr)
 
 
 
