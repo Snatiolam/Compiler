@@ -1,5 +1,6 @@
 import enum
 import re
+import traceback
 
 class Tokenizer:
 
@@ -36,90 +37,128 @@ class Tokenizer:
         NULL = 20
         THIS = 21
 
+    def __init__(self, inFile):
+        try:
+            scanner = open(inFile, "r")
+            preprocessed = ""
+            line = ""
 
-        def initReg(self):
-            
-            KeyWordReg = ""
-            for seg in KeWordMap.keys():
-                keyWordReg += seg + "|"
+            for lineN in scanner.readlines():
+                line = noComments(lineN).strip()
 
-            symbolReg = "[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]";
-            intReg = "[0-9]+";
-            strReg = "\"[^\"\n]*\"";
-            idReg = "[a-zA-Z_]\\w*";
-            tokenPatterns = Pattern.compile(idReg + "|" + keyWordReg + symbolReg + "|" + intReg + "|" + strReg);
+                if len(line) > 0:
+                    preprocessd += line + "\n"
+
+            preprocessed = noBlockComments(preprocessed).strip()
+
+            initRegs()
+            m = tokenPatterns.search(preprocessed);
+            token = []
+            pointer = 0
+            while m.find():
+                tokens.append(m.group());
+
+        except:
+            traceback.print_exc()
+
+        currentToken = ""
+        currentTokenType = TYPE.NONE
+
+    def initReg(self):
+        
+        KeyWordReg = ""
+        for seg in KeWordMap.keys():
+            keyWordReg += seg + "|"
+
+        symbolReg = "[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]";
+        intReg = "[0-9]+";
+        strReg = "\"[^\"\n]*\"";
+        idReg = "[a-zA-Z_]\\w*";
+        tokenPatterns = re.compile(idReg + "|" + keyWordReg + symbolReg + "|" + intReg + "|" + strReg);
 
 
-        def hasMoreToken(self):
-            return pointer < len(tokens)
+    def hasMoreToken(self):
+        return pointer < len(tokens)
 
-        def advance(self):
-            if (hasMoreToken()):
-                currentToken = token[pointer]
-                pointer += 1
+    def advance(self):
+        if (hasMoreToken()):
+            currentToken = token[pointer]
+            pointer += 1
+        else:
+            raise Exception("No more tokens")
+
+        if re.match(keyWordReg, currentToken):
+            currentTokenType = TYPE.KEYWORD
+        elif re.match(symbolReg, currentToken):
+            currentTokenType = TYPE.SYMBOL
+        elif re.match(intReg, currentToken):
+            currentTokenType = TYPE.INT_CONST
+        elif re.match(strReg, currentToken):
+            currentTokenType = TYPE.STRING_CONST
+        elif re.match(idReg, currentToken):
+            currentTokenType = TYPE.IDENTIFIER
+        else:
+            raise Exception("Unknow token:" + currentToken)
+
+        def getCurrentToken(self):
+            return currentToken
+
+        def tokenType(self):
+            return currentTokenType
+
+        def keyWord(self):
+            if currentTokenType == TYPE.KEYWORD:
+                return keyWordMap[currentToken]
             else:
-                raise Exception("No more tokens")
+                raise Exception("Current token is not a keyword")
 
-            if re.match(keyWordReg, currentToken):
-                currentTokenType = TYPE.KEYWORD
-            elif re.match(symbolReg, currentToken):
-                currentTokenType = TYPE.SYMBOL
-            elif re.match(intReg, currentToken):
-                currentTokenType = TYPE.INT_CONST
-            elif re.match(strReg, currentToken):
-                currentTokenType = TYPE.STRING_CONST
-            elif re.match(idReg, currentToken):
-                currentTokenType = TYPE.IDENTIFIER
+        def symbol(self):
+            if currentTokenType == TYPE.SYMBOL:
+                return currentToken[0]
             else:
-                raise Exception("Unknow token:" + currentToken)
+                raise Exception("Current token is not  a symbol")
 
-            def getCurrentToken(self):
+        def identifier(self):
+            if currentTokenType == TYPE.IDENTIFIER:
                 return currentToken
+            else:
+                raise Exception("Current token is not a identifier")
 
-            def tokenType(self):
-                return currentTokenType
+        def intVal(self):
+            if currentTokenType == TYPE.INT_CONST:
+                return int(currentToken)
+            else:
+                raise Exception("Current token is not an integer constant")
 
-            def keyWord(self):
-                if currentTokenType == TYPE.KEYWORD:
-                    return keyWordMap[currentToken]
-                else:
-                    raise Exception("Current token is not a keyword")
+        def stringVal(self):
+            if currentTokenType == TYPE.STRING_CONST:
+                return currentToken[1: len(currentToken) - 1]
+            else:
+                raise Exception("Current token is not a string constant")
 
-            def symbol(self):
-                if currentTokenType == TYPE.SYMBOL:
-                    return currentToken[0]
-                else:
-                    raise Exception("Current token is not  a symbol")
+        def pointerBack(self):
+            if pointer > 0:
+                pointer -= 1
+                currentToken = tokens[pointer]
 
-            def identifier(self):
-                if currentTokenType == TYPE.IDENTIFIER:
-                    return currentToken
-                else:
-                    raise Exception("Current token is not a identifier")
+        def isOp(self):
+            return symbol() in opSet
 
-            def intVal(self):
-                if currentTokenType == TYPE.INT_CONST:
-                    return int(currentToken)
-                else:
-                    raise Exception("Current token is not an integer constant")
+        def noComments(self, strIn):
+            position = strIn.find("//")
+            if position != -1:
+                strIn = strIn[0:position]
 
-            def stringVal(self):
-                if currentTokenType == TYPE.STRING_CONST:
-                    return currentToken[1: len(currentToken) - 1]
-                else:
-                    raise Exception("Current token is not a string constant")
+            return strIn
 
-            def pointerBack(self):
-                if pointer > 0:
-                    pointer -= 1
-                    currentToken = tokens[pointer]
+        def noSpaces(self, strIn):
+            result = ""
 
-            def isOp(self):
-                return symbol() in opSet
+            if len(strIn) != 0:
+                segs = strIn.split(" ")
 
-            def noComments(self, strIn):
-                position = strIn.find("//")
-                if position != -1:
-                    strIn = strIn[0:position]
+                for s in segs:
+                    result += s
 
-                return strIn
+            return result
+
