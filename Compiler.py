@@ -25,14 +25,14 @@ class JackComplier:
 
         for f in files:
 
-            if (f.find('.jack') != -1):
+            if (f.find('.au') != -1):
                 result.append(f)
         return result
 
 
 if __name__ == "__main__": 
     if (len(sys.argv) == 1):
-        print("Usage:python JackCompiler [filename.jack|directory]")
+        print("Usage:python AuCompiler [filename.au|directory]")
     else:
         fileInName = sys.argv[1]
         fileIn = ""
@@ -46,28 +46,28 @@ if __name__ == "__main__":
 
         fileOut = ""
 
-        jackFiles = []
+        auFiles = []
 
         if (not carpeta): 
 
             path = fileIn
 
-            if (sys.argv[1].find(".jack") == -1): 
-                print(".jack file is required!")
+            if (sys.argv[1].find(".au") == -1): 
+                print(".au file is required!")
 
-            jackFiles.append(fileIn)
+            auFiles.append(fileIn)
 
         else:
             temp = sys.argv[1]
-            jackFiles = JackComplier.getJackFiles(temp)
+            auFiles = JackComplier.getJackFiles(temp)
 
-            if (len(jackFiles) == 0):
-                print("No jack file in this directory")
+            if (len(auFiles) == 0):
+                print("No Au file in this directory")
 
 
-        for f in jackFiles:
+        for f in auFiles:
             
-            fileOutPath =  f[0:f.find('.jack')] + '.vm'
+            fileOutPath =  f[0:f.find('.au')] + '.vm'
             fileOut = open(fileOutPath, 'w+')
             compilationEngine = CompilationEngine(f,fileOut)
             compilationEngine.compileClass()
