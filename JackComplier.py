@@ -25,7 +25,7 @@ class JackComplier:
 
         return result
 
-if __name__ == "__main__": 
+def main():
     if (len(sys.argv) == 1):
         print("Usage:python JackCompiler [filename.jack|directory]")
     else:
@@ -62,10 +62,13 @@ if __name__ == "__main__":
 
         for f in jackFiles:
             fileOutPath = f[0:f.find('.jack')] + '.vm'
-            fileOut = open(fileOutPath, 'w')
+            fileOut = open(fileOutPath, 'w+')
 
             compilationEngine = CompilationEngine(f,fileOut)
             compilationEngine.compileClass()
 
             print("File created : " + fileOutPath)
+
+if __name__ == "__main__": 
+    main()
 

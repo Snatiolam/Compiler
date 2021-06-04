@@ -19,7 +19,7 @@ class Tokenizer:
         CLASS = 1
         METHOD = 2
         FUNCTION = 3
-        CONTRUCTOR = 4
+        CONSTRUCTOR = 4
         INT = 5
         BOOLEAN = 6
         CHAR = 7
@@ -39,91 +39,95 @@ class Tokenizer:
         THIS = 21
 
     def __init__(self, inFile):
+        self.pointer = 0
+        self.preprocessed = ""
+        self.line = ""
+        self.tokens = []
+        self.init_keywordmap()
+        self.keyWordReg = ""
+        self.tokenPatterns = None
         try:
-            scanner = open(inFile, "r")
-            preprocessed = ""
-            line = ""
-            init_keywordmap()
-
+            scanner = open(inFile,'r')
+            input(inFile)
+            #input(type(inFile))      
             for lineN in scanner.readlines():
                 line = noComments(lineN).strip()
 
                 if len(line) > 0:
-                    preprocessd += line + "\n"
+                    self.preprocessed += line + "\n"
 
-            preprocessed = noBlockComments(preprocessed).strip()
+            self.preprocessed = self.noBlockComments(self.preprocessed).strip()
 
-            initRegs()
-            m = tokenPatterns.search(preprocessed);
-            token = []
-            pointer = 0
+            self.initRegs()
+            m = self.tokenPatterns.search(self.preprocessed)
+            input(type(self.preprocessed))
             while m.find():
-                tokens.append(m.group());
+                tokens.append(m.group())
 
         except:
             traceback.print_exc()
 
-        currentToken = ""
-        currentTokenType = TYPE.NONE
+        self.currentToken = ""
+        self.currentTokenType = self.TYPE.NONE
 
     def init_keywordmap(self):
-        KeyWordMap["class"] = KEYWORD.CLASS
-        KeyWordMap["method"] = KEYWORD.METHOD
-        KeyWordMap["declare"] = KEYWORD.VAR
-        KeyWordMap["boolean"] = KEYWORD.BOOLEAN
-        KeyWordMap["false"] = KEYWORD.FALSE
-        KeyWordMap["let"] = KEYWORD.LET
-        KeyWordMap["else"] = KEYWORD.ELSE
-        KeyWordMap["constructor"] = KEYWORD.CONSTRUCTOR
-        KeyWordMap["field"] = KEYWORD.FIELD
-        KeyWordMap["int"] = KEYWORD.INT
-        KeyWordMap["void"] = KEYWORD.VOID
-        KeyWordMap["null"] = KEYWORD.NULL
-        KeyWordMap["do"] = KEYWORD.DO
-        KeyWordMap["while"] = KEYWORD.WHILE
-        KeyWordMap["fun"] = KEYWORD.FUNCTION
-        KeyWordMap["static"] = KEYWORD.STATIC
-        KeyWordMap["char"] = KEYWORD.CHAR
-        KeyWordMap["true"] = KEYWORD.TRUE
-        KeyWordMap["this"] = KEYWORD.THIS
-        KeyWordMap["if"] = KEYWORD.IF
-        KeyWordMap["return"] = KEYWORD.RETURN
+        self.KeyWordMap["class"] = self.KEYWORD.CLASS
+        self.KeyWordMap["method"] = self.KEYWORD.METHOD
+        self.KeyWordMap["declare"] = self.KEYWORD.VAR
+        self.KeyWordMap["boolean"] = self.KEYWORD.BOOLEAN
+        self.KeyWordMap["false"] = self.KEYWORD.FALSE
+        self.KeyWordMap["let"] = self.KEYWORD.LET
+        self.KeyWordMap["else"] = self.KEYWORD.ELSE
+        self.KeyWordMap["constructor"] = self.KEYWORD.CONSTRUCTOR
+        self.KeyWordMap["field"] = self.KEYWORD.FIELD
+        self.KeyWordMap["int"] = self.KEYWORD.INT
+        self.KeyWordMap["void"] = self.KEYWORD.VOID
+        self.KeyWordMap["null"] = self.KEYWORD.NULL
+        self.KeyWordMap["do"] = self.KEYWORD.DO
+        self.KeyWordMap["while"] = self.KEYWORD.WHILE
+        self.KeyWordMap["fun"] = self.KEYWORD.FUNCTION
+        self.KeyWordMap["static"] = self.KEYWORD.STATIC
+        self.KeyWordMap["char"] = self.KEYWORD.CHAR
+        self.KeyWordMap["true"] = self.KEYWORD.TRUE
+        self.KeyWordMap["this"] = self.KEYWORD.THIS
+        self.KeyWordMap["if"] = self.KEYWORD.IF
+        self.KeyWordMap["return"] = self.KEYWORD.RETURN
 
-        opSet.append('+')
-        opSet.append('-')
-        opSet.append('*')
-        opSet.append('/')
-        opSet.append('&')
-        opSet.append('|')
-        opSet.append('<')
-        opSet.append('>')
-        opSet.append('=')
+        self.opSet.append('+')
+        self.opSet.append('-')
+        self.opSet.append('*')
+        self.opSet.append('/')
+        self.opSet.append('&')
+        self.opSet.append('|')
+        self.opSet.append('<')
+        self.opSet.append('>')
+        self.opSet.append('=')
 
-    def initReg(self):
+    def initRegs(self):
         
-        KeyWordReg = ""
-        for seg in KeWordMap.keys():
-            keyWordReg += seg + "|"
+        self.KeyWordReg = ""
+        for seg in self.KeyWordMap.keys():
+            self.keyWordReg += seg + "|"
 
-        symbolReg = "[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]";
-        intReg = "[0-9]+";
-        strReg = "\"[^\"\n]*\"";
-        idReg = "[a-zA-Z_]\\w*";
-        tokenPatterns = re.compile(idReg + "|" + keyWordReg + symbolReg + "|" + intReg + "|" + strReg);
-
+        symbolReg = "[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]"
+        intReg = "[0-9]+"
+        strReg = "\"[^\"\n]*\""
+        idReg = "[a-zA-Z_]\\w*"
+        self.tokenPatterns = re.compile(idReg + "|" + self.keyWordReg + symbolReg + "|" + intReg + "|" + strReg)
 
     def hasMoreToken(self):
-        return pointer < len(tokens)
+        print(self.pointer, len(self.tokens))
+        return self.pointer < len(self.tokens)
 
     def advance(self):
-        if (hasMoreToken()):
-            currentToken = token[pointer]
-            pointer += 1
+        if self.hasMoreToken():
+            self.currentToken = self.tokens[pointer]
+            self.pointer += 1
         else:
             raise Exception("No more tokens")
 
         if re.match(keyWordReg, currentToken):
-            currentTokenType = TYPE.KEYWORD
+            currentTokenType = TYPE.self.KEYWORD
         elif re.match(symbolReg, currentToken):
             currentTokenType = TYPE.SYMBOL
         elif re.match(intReg, currentToken):
@@ -142,7 +146,7 @@ class Tokenizer:
             return currentTokenType
 
         def keyWord(self):
-            if currentTokenType == TYPE.KEYWORD:
+            if currentTokenType == TYPE.self.KEYWORD:
                 return keyWordMap[currentToken]
             else:
                 raise Exception("Current token is not a keyword")
@@ -177,7 +181,7 @@ class Tokenizer:
                 currentToken = tokens[pointer]
 
         def isOp(self):
-            return symbol() in opSet
+            return symbol() in self.opSet
 
         def noComments(self, strIn):
             position = strIn.find("//")
@@ -197,3 +201,20 @@ class Tokenizer:
 
             return result
 
+    def noBlockComments(self, strIn):
+        startIndex = strIn.find("/*")
+        if startIndex == -1:
+            return strIn
+        result = strIn
+        endIndex = strIn.find("*/")
+
+        while startIndex != -1:
+            if endIndex == -1:
+                return strIn[0: startIndex - 1]
+            result = result[0: startIndex] + result[endIndex + 2]
+
+            startIndex = result.find("/*")
+            endIndex = result.find("*/")
+
+        
+        return result

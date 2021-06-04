@@ -25,9 +25,10 @@ class VMWriter:
     commandStringHashMap['COMMAND.OR'] = "or"
     commandStringHashMap['COMMAND.NOT'] = "not"
 
-    def __init__(self,fOut):
+    def __init__(self, fOut):
         try:
-            self.f = open(fOut, 'w') # self.f = fOut -> Seria la otra opcion si esta linea saca error
+            # self.f = open(fOut, 'w')
+            self.f = fOut # self.f = fOut -> Seria la otra opcion si esta linea saca error
         except:
             print("No se encontro el archivo o bien tienes un error en el VMWriter")
         

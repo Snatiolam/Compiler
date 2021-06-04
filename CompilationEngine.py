@@ -1,3 +1,7 @@
+from Tokenizer import *
+from VMWriter import *
+from SymbolTable import *
+
 
 class CompilationEngine:
     
@@ -5,7 +9,7 @@ class CompilationEngine:
     def __init__(self,inFile, outFile):
         self.currentClass = ""
         self.currentSubroutine = ""
-        self.tokenizer = JackTokenizer(inFile)
+        self.tokenizer = Tokenizer(inFile)
         self.vmWriter = VMWriter(outFile)
         self.symbolTable = SymbolTable()
         self.labelIndex = 0
@@ -20,13 +24,13 @@ class CompilationEngine:
     def compileType(self):
         self.tokenizer.advance()
 
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD 
-        and (self.tokenizer.keyWord() == JackTokenizer.KEYWORD.INT 
-        or self.tokenizer.keyWord() == JackTokenizer.KEYWORD.CHAR 
-        or self.tokenizer.keyWord() == JackTokenizer.KEYWORD.BOOLEAN)):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD 
+        and (self.tokenizer.keyWord() == Tokenizer.KEYWORD.INT 
+        or self.tokenizer.keyWord() == Tokenizer.KEYWORD.CHAR 
+        or self.tokenizer.keyWord() == Tokenizer.KEYWORD.BOOLEAN)):
             return self.tokenizer.getCurrentToken()
 
-        if self.tokenizer.tokenType() == JackTokenizer.TYPE.IDENTIFIER:
+        if self.tokenizer.tokenType() == Tokenizer.TYPE.IDENTIFIER:
             return self.tokenizer.identifier()
 
         error("in|char|boolean|className")
@@ -37,13 +41,13 @@ class CompilationEngine:
     def compileClass(self):
         self.tokenizer.advance()
 
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != JackTokenizer.KEYWORD.CLASS):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != Tokenizer.KEYWORD.CLASS):
             print(self.tokenizer.getCurrentToken())
             error("class")
         
         self.tokenizer.advance()
 
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             error("className")
         
 
@@ -62,18 +66,18 @@ class CompilationEngine:
 
     def compileClassVarDec(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
             self.tokenizer.pointerBack()
             return 
         
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.KEYWORD):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD):
             error("Keywords")
         
-        if (self.tokenizer.keyWord() == JackTokenizer.KEYWORD.CONSTRUCTOR or self.tokenizer.keyWord() == JackTokenizer.KEYWORD.FUNCTION or tokenizer.keyWord() == JackTokenizer.KEYWORD.METHOD):
+        if (self.tokenizer.keyWord() == Tokenizer.KEYWORD.CONSTRUCTOR or self.tokenizer.keyWord() == Tokenizer.KEYWORD.FUNCTION or tokenizer.keyWord() == Tokenizer.KEYWORD.METHOD):
             self.tokenizer.pointerBack()
             return 
 
-        if (self.tokenizer.keyWord() != JackTokenizer.KEYWORD.STATIC and self.tokenizer.keyWord() != JackTokenizer.KEYWORD.FIELD):
+        if (self.tokenizer.keyWord() != Tokenizer.KEYWORD.STATIC and self.tokenizer.keyWord() != Tokenizer.KEYWORD.FIELD):
             error("static or field")
         
         kind = None
@@ -96,7 +100,7 @@ class CompilationEngine:
         varNamesDone = False
         while True:
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
             
             name = self.tokenizer.identifier()
@@ -105,7 +109,7 @@ class CompilationEngine:
 
             self.tokenizer.advance()
 
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ';')):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ';')):
                 error("',' or ';'")
 
             if (self.tokenizer.symbol() == ';'):
@@ -116,33 +120,33 @@ class CompilationEngine:
 
     def compileSubroutine(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
             self.tokenizer.pointerBack()
             return
 
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.KEYWORD or (self.tokenizer.keyWord() != JackTokenizer.KEYWORD.CONSTRUCTOR 
-        and self.tokenizer.keyWord() != JackTokenizer.KEYWORD.FUNCTION 
-        and self.tokenizer.keyWord() != JackTokenizer.KEYWORD.METHOD)):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD or (self.tokenizer.keyWord() != Tokenizer.KEYWORD.CONSTRUCTOR 
+        and self.tokenizer.keyWord() != Tokenizer.KEYWORD.FUNCTION 
+        and self.tokenizer.keyWord() != Tokenizer.KEYWORD.METHOD)):
             error("constructor|fun|method")
 
         keyword = self.tokenizer.keyWord()
 
         self.symbolTable.startSubroutine()
 
-        if (self.tokenizer.keyWord() == JackTokenizer.KEYWORD.METHOD):
+        if (self.tokenizer.keyWord() == Tokenizer.KEYWORD.METHOD):
             self.symbolTable.define("this",self.currentClass, Symbol.KIND.ARG)
 
         type = ""
 
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == JackTokenizer.KEYWORD.VOID):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.VOID):
             type = "void"
         else:
             self.tokenizer.pointerBack()
             type = compileType()
         
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             error("subroutineName")
 
         currentSubroutine = self.tokenizer.identifier()
@@ -174,11 +178,11 @@ class CompilationEngine:
     def wrtieFunctionDec(self, keyword):
 
         self.vmWriter.writeFunction(currentFunction(),self.symbolTable.varCount(Symbol.KIND.VAR))
-        if (keyword == JackTokenizer.KEYWORD.METHOD):
+        if (keyword == Tokenizer.KEYWORD.METHOD):
             self.vmWriter.writePush(VMWriter.SEGMENT.ARG, 0)
             self.vmWriter.writePop(VMWriter.SEGMENT.POINTER,0)
 
-        elif (keyword == JackTokenizer.KEYWORD.CONSTRUCTOR):
+        elif (keyword == Tokenizer.KEYWORD.CONSTRUCTOR):
             self.vmWriter.writePush(VMWriter.SEGMENT.CONST,self.symbolTable.varCount(Symbol.KIND.FIELD))
             self.vmWriter.writeCall("Memory.alloc", 1)
             self.vmWriter.writePop(VMWriter.SEGMENT.POINTER,0)
@@ -188,12 +192,12 @@ class CompilationEngine:
 
     def compileStatement(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
             self.tokenizer.pointerBack()
             return
 
 
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.KEYWORD):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD):
             error("keyword")
         else:
             if self.tokenizer.keyWord() == LET:
@@ -224,7 +228,7 @@ class CompilationEngine:
 
     def compileParameterList(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and tokenizer.symbol() == ')'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and tokenizer.symbol() == ')'):
             self.tokenizer.pointerBack()
             return
 
@@ -234,13 +238,13 @@ class CompilationEngine:
         while True:
             type = compileType()
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
 
             self.symbolTable.define(self.tokenizer.identifier(),type, Symbol.KIND.ARG)
 
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and tokenizer.symbol() != ')')):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and tokenizer.symbol() != ')')):
                 error("',' or ')'")
 
             if (self.tokenizer.symbol() == ')'):
@@ -249,7 +253,7 @@ class CompilationEngine:
             
     def compileVarDec(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != JackTokenizer.KEYWORD.VAR):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != Tokenizer.KEYWORD.VAR):
             self.tokenizer.pointerBack()
             return
 
@@ -260,13 +264,13 @@ class CompilationEngine:
         while True:
             self.tokenizer.advance()
 
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
             
             self.symbolTable.define(self.tokenizer.identifier(),type, Symbol.KIND.VAR)
             self.tokenizer.advance()
 
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ';')):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ';')):
                 error("',' or ';'")
 
             if (self.tokenizer.symbol() == ';'):
@@ -283,12 +287,12 @@ class CompilationEngine:
     def compileLet(self):
 
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             error("varName")
 
         varName = self.tokenizer.identifier()
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != '[' and self.tokenizer.symbol() != '=')):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != '[' and self.tokenizer.symbol() != '=')):
             error("'['|'='")
         
 
@@ -367,7 +371,7 @@ class CompilationEngine:
 
     def compileReturn(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ';'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ';'):
             self.vmWriter.writePush(self.VMWriter.SEGMENT.CONST,0)
         else:
             self.tokenizer.pointerBack()
@@ -393,7 +397,7 @@ class CompilationEngine:
         self.vmWriter.writeGoto(endLabel)
         self.vmWriter.writeLabel(elseLabel)
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == JackTokenizer.KEYWORD.ELSE):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.ELSE):
             requireSymbol('{')
             compileStatement()
             requireSymbol('}')
@@ -405,11 +409,11 @@ class CompilationEngine:
 
     def compileTerm(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.IDENTIFIER):
             tempId = self.tokenizer.identifier()
 
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '['):
+            if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '['):
                 self.vmWriter.writePush(getSeg(self.symbolTable.kindOf(tempId)),self.symbolTable.indexOf(tempId))
                 compileExpression()
                 requireSymbol(']')
@@ -417,7 +421,7 @@ class CompilationEngine:
                 self.vmWriter.writePop(VMWriter.SEGMENT.POINTER,1)
                 self.vmWriter.writePush(VMWriter.SEGMENT.THAT,0)
 
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and 
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and 
             (self.tokenizer.symbol() == '(' or 
             self.tokenizer.symbol() == '.')):
                 self.tokenizer.pointerBack();self.tokenizer.pointerBack()
@@ -428,9 +432,9 @@ class CompilationEngine:
 
         else:
             
-            if (self.tokenizer.tokenType() == JackTokenizer.TYPE.INT_CONST):
+            if (self.tokenizer.tokenType() == Tokenizer.TYPE.INT_CONST):
                 self.vmWriter.writePush(VMWriter.SEGMENT.CONST,self.tokenizer.intVal())
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.STRING_CONST):
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.STRING_CONST):
                 string = self.tokenizer.stringVal()
                 self.vmWriter.writePush(VMWriter.SEGMENT.CONST,string.length())
                 self.vmWriter.writeCall("String.new",1)
@@ -438,20 +442,20 @@ class CompilationEngine:
                     self.vmWriter.writePush(VMWriter.SEGMENT.CONST,int(str.charAt(i)))
                     self.vmWriter.writeCall("String.appendChar",2)
 
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == JackTokenizer.KEYWORD.TRUE):
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.TRUE):
                 self.vmWriter.writePush(VMWriter.SEGMENT.CONST,0)
                 self.vmWriter.writeArithmetic(VMWriter.COMMAND.NOT)
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == JackTokenizer.KEYWORD.THIS):
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.THIS):
                 self.vmWriter.writePush(VMWriter.SEGMENT.POINTER,0)
 
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.KEYWORD and 
-            (self.tokenizer.keyWord() == JackTokenizer.KEYWORD.FALSE or 
-            self.tokenizer.keyWord() == JackTokenizer.KEYWORD.NULL)):
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and 
+            (self.tokenizer.keyWord() == Tokenizer.KEYWORD.FALSE or 
+            self.tokenizer.keyWord() == Tokenizer.KEYWORD.NULL)):
                 self.vmWriter.writePush(VMWriter.SEGMENT.CONST,0)
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
                 compileExpression()
                 requireSymbol(')')
-            elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL 
+            elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL 
             and (self.tokenizer.symbol() == '-' or self.tokenizer.symbol() == '~')):
                 s = self.tokenizer.symbol()
                 compileTerm()
@@ -466,23 +470,23 @@ class CompilationEngine:
 
     def compileSubroutineCall(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             error("identifier")
 
         name = tokenizer.identifier()
         nArgs = 0
 
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '('):
             self.vmWriter.writePush(self.VMWriter.SEGMENT.POINTER,0)
             nArgs = compileExpressionList() + 1
             requireSymbol(')')
             self.vmWriter.writeCall(self.currentClass + '.' + name, nArgs)
 
-        elif(self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '.'):
+        elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '.'):
             objName = name
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() != JackTokenizer.TYPE.IDENTIFIER):
+            if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
 
             name = tokenizer.identifier()
@@ -509,7 +513,7 @@ class CompilationEngine:
         compileTerm()
         while True:
             self.tokenizer.advance()
-            if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.isOp()):
+            if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.isOp()):
                 opCmd = ""
 
                 if self.tokenizer.symbol() == '+':
@@ -558,7 +562,7 @@ class CompilationEngine:
 
         self.tokenizer.advance()
         
-        if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ')'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ')'):
             self.tokenizer.pointerBack()
         else:
             nArgs = 1
@@ -566,7 +570,7 @@ class CompilationEngine:
             compileExpression()
             while True:
                 tokenizer.advance()
-                if (self.tokenizer.tokenType() == JackTokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ','):
+                if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ','):
                     compileExpression()
                     nArgs += 1
                 else:
@@ -580,6 +584,6 @@ class CompilationEngine:
     
     def requireSymbol(self, symbol):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() != JackTokenizer.TYPE.SYMBOL or self.tokenizer.symbol() != symbol):
+        if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or self.tokenizer.symbol() != symbol):
             error("'" + symbol + "'")
     

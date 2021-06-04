@@ -1,3 +1,5 @@
+from Symbol import *
+
 class SymbolTable:
      
     def __init__(self):
