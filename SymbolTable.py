@@ -1,12 +1,15 @@
 from Symbol import *
+from collections import defaultdict
 
 class SymbolTable:
      
     def __init__(self):
         
-        self.classSymbols = {}
-        self.subroutineSymbols = {}
+        #self.classSymbols = {}
+        self.classSymbols = defaultdict(lambda:None)
 
+        #self.subroutineSymbols = {}
+        self.subroutineSymbols = defaultdict(lambda:None)
         self.indices = {}
         self.indices[Symbol.KIND.ARG] = 0
         self.indices[Symbol.KIND.FIELD] = 0
@@ -20,25 +23,28 @@ class SymbolTable:
         self.indices[Symbol.KIND.ARG] = 0
 
     def define(self, name, typeT, kind):
-        if (kind == Symbol.KIND.ARG) or (Kind == Symbol.KIND.VAR):
+        if (kind == Symbol.KIND.ARG) or (kind == Symbol.KIND.VAR):
 
-            index = indices[kind]
+            index = self.indices[kind]
             symbol = Symbol(typeT, kind, index) 
-            indices[kind]= index+1
-            subroutineSymbols[name] = symbol
+            self.indices[kind]= index+1
+            self.subroutineSymbols[name] = symbol
+            print("------------",name,"--------------", symbol.typeStr)
         elif (kind == Symbol.KIND.STATIC) or (kind == Symbol.KIND.FIELD):
             index = indices[kind]
             symbol = Symbol(typeT, kind, index)
             indices[kind] = index + 1
             classSymbols[name] = symbol
+            print("------------",name,"--------------", symbol.typeStr)
+
 
 
 
     def varCount(self, kind):
-        return indices[kind]
+        return self.indices[kind]
 
     def kindOf(self, name):
-        symbol = lookUp(name)
+        symbol = self.lookUp(name)
         if symbol != None:
             return symbol.getKind()
 
@@ -46,7 +52,7 @@ class SymbolTable:
 
 
     def typeOf(self, name):
-        symbol = lookUp(name)
+        symbol = self.lookUp(name)
         if symbol != None:
             return symbol.getType()
 
@@ -54,17 +60,16 @@ class SymbolTable:
 
 
     def indexOf(self, name):
-        symbol = lookUp(name)
+        symbol = self.lookUp(name)
         if symbol != None:
             return symbol.getIndex()
 
         return -1
 
     def lookUp(self, name):
-        if classSymbols[name] != None:
-            return classSymbols[name]
-        elif subroutineSymbols[name] != None:
-            return subroutineSymbols[name]
+        if self.classSymbols[name] != None:
+            return self.classSymbols[name]
+        elif self.subroutineSymbols[name] != None:
+            return self.subroutineSymbols[name]
         else:
             return None
-

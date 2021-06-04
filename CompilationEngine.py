@@ -41,13 +41,13 @@ class CompilationEngine:
     def compileClass(self):
         self.tokenizer.advance()
 
-        if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != Tokenizer.KEYWORD.CLASS):
+        if (self.tokenizer.tokenType() != self.tokenizer.TYPE.KEYWORD or self.tokenizer.keyWord() != self.tokenizer.KEYWORD.CLASS):
             print(self.tokenizer.getCurrentToken())
             self.error("class")
         
         self.tokenizer.advance()
 
-        if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
+        if (self.tokenizer.tokenType() != self.tokenizer.TYPE.IDENTIFIER):
             self.error("className")
         
 
@@ -58,7 +58,7 @@ class CompilationEngine:
         self.compileSubroutine()
         self.requireSymbol('}')
 
-        if (tokenizer.hasMoreTokens()):
+        if (self.tokenizer.hasMoreTokens()):
             self.error("Unexpected tokens")
         
         self.vmWriter.close()
@@ -66,14 +66,14 @@ class CompilationEngine:
 
     def compileClassVarDec(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
+        if (self.tokenizer.tokenType() == self.tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '}'):
             self.tokenizer.pointerBack()
             return 
         
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD):
             error("Keywords")
         
-        if (self.tokenizer.keyWord() == Tokenizer.KEYWORD.CONSTRUCTOR or self.tokenizer.keyWord() == Tokenizer.KEYWORD.FUNCTION or tokenizer.keyWord() == Tokenizer.KEYWORD.METHOD):
+        if (self.tokenizer.keyWord() == Tokenizer.KEYWORD.CONSTRUCTOR or self.tokenizer.keyWord() == Tokenizer.KEYWORD.FUNCTION or self.tokenizer.keyWord() == Tokenizer.KEYWORD.METHOD):
             self.tokenizer.pointerBack()
             return 
 
@@ -84,19 +84,17 @@ class CompilationEngine:
         typeT = ""
         name = ""
 
-        dict = {
-            "STATIC:kind" : Symbol.KIND.STATIC,
-            "FIELD:kind" :  Symbol.KIND.FIELD
-        }
-
-        dict[tokenizer.keyWord()]
+        if self.tokenizer.keyWord() == Symbol.KIND.STATIC:
+            kind = Symbol.KIND.STATIC
+        elif self.tokenizer.keyWord() == Symbol.KIND.FIELD:
+            kind = Symbol.KIND.FIELD
         '''
         switch (tokenizer.keyWord()){
             case STATIC:kind = Symbol.KIND.STATIC;break;
             case FIELD:kind = Symbol.KIND.FIELD;break;
         }
         '''
-        typeT = compileType()
+        typeT = self.compileType()
         varNamesDone = False
         while True:
             self.tokenizer.advance()
@@ -115,7 +113,7 @@ class CompilationEngine:
             if (self.tokenizer.symbol() == ';'):
                 break
 
-        compileClassVarDec()
+        self.compileClassVarDec()
     
 
     def compileSubroutine(self):
@@ -143,13 +141,13 @@ class CompilationEngine:
             typeT = "void"
         else:
             self.tokenizer.pointerBack()
-            typeT = compileType()
+            typeT = self.compileType()
         
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             self.error("subroutineName")
 
-        currentSubroutine = self.tokenizer.identifier()
+        self.currentSubroutine = self.tokenizer.identifier()
 
         
         self.requireSymbol('(')
@@ -160,24 +158,24 @@ class CompilationEngine:
         
         self.requireSymbol(')')
 
-        compileSubroutineBody(keyword)
+        self.compileSubroutineBody(keyword)
 
-        compileSubroutine()
+        self.compileSubroutine()
 
     
     def compileSubroutineBody(self, keyword):
         
-        requireSymbol('{')
-        compileVarDec()
-        wrtieFunctionDec(keyword)
+        self.requireSymbol('{')
+        self.compileVarDec()
+        self.writeFunctionDec(keyword)
 
-        compileStatement()
-        requireSymbol('}')
+        self.compileStatement()
+        self.requireSymbol('}')
 
 
-    def wrtieFunctionDec(self, keyword):
+    def writeFunctionDec(self, keyword):
 
-        self.vmWriter.writeFunction(currentFunction(),self.symbolTable.varCount(Symbol.KIND.VAR))
+        self.vmWriter.writeFunction(self.currentFunction(),self.symbolTable.varCount(Symbol.KIND.VAR))
         if (keyword == Tokenizer.KEYWORD.METHOD):
             self.vmWriter.writePush(VMWriter.SEGMENT.ARG, 0)
             self.vmWriter.writePop(VMWriter.SEGMENT.POINTER,0)
@@ -200,18 +198,18 @@ class CompilationEngine:
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.KEYWORD):
             error("keyword")
         else:
-            if self.tokenizer.keyWord() == LET:
-                compileLet()
-            elif self.tokenizer.keyWord() == IF:
-                compileIf()
-            elif self.tokenizer.keyWord() == WHILE:
-                compilesWhile()
-            elif self.tokenizer.keyWord() == DO:
-                compileDo()
-            elif self.tokenizer.keyWord() == RETURN:
-                compileReturn()
+            if self.tokenizer.keyWord() == Tokenizer.KEYWORD.LET:
+                self.compileLet()
+            elif self.tokenizer.keyWord() == Tokenizer.KEYWORD.IF:
+                self.compileIf()
+            elif self.tokenizer.keyWord() == Tokenizer.KEYWORD.WHILE:
+                self.compilesWhile()
+            elif self.tokenizer.keyWord() == Tokenizer.KEYWORD.DO:
+                self.compileDo()
+            elif self.tokenizer.keyWord() == Tokenizer.KEYWORD.RETURN:
+                self.compileReturn()
             else:
-                error("'let'|'if'|'while'|'do'|'return'")
+                self.error("'let'|'if'|'while'|'do'|'return'")
             '''
             switch (tokenizer.keyWord()){
                 case LET:compileLet();break;
@@ -223,12 +221,12 @@ class CompilationEngine:
             }
             '''
         
-        compileStatement()
+        self.compileStatement()
     
 
     def compileParameterList(self):
         self.tokenizer.advance()
-        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and tokenizer.symbol() == ')'):
+        if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ')'):
             self.tokenizer.pointerBack()
             return
 
@@ -258,7 +256,7 @@ class CompilationEngine:
             return
 
         
-        typeT = compileType()
+        typeT = self.compileType()
         varNamesDone = False
 
         while True:
@@ -276,13 +274,13 @@ class CompilationEngine:
             if (self.tokenizer.symbol() == ';'):
                 break
 
-        compileVarDec()
+        self.compileVarDec()
 
 
     def compileDo(self):
-        compileSubroutineCall()
-        requireSymbol(';')
-        self.vmWriter.writePop(self.VMWriter.SEGMENT.TEMP,0)
+        self.compileSubroutineCall()
+        self.requireSymbol(';')
+        self.vmWriter.writePop(VMWriter.SEGMENT.TEMP,0)
 
     def compileLet(self):
 
@@ -311,9 +309,9 @@ class CompilationEngine:
             self.tokenizer.advance()
 
         
-        compileExpression()
+        self.compileExpression()
 
-        requireSymbol(';')
+        self.requireSymbol(';')
 
         if (expExist):
             self.vmWriter.writePop(self.VMWriter.SEGMENT.TEMP,0)
@@ -321,22 +319,22 @@ class CompilationEngine:
             self.vmWriter.writePush(self.VMWriter.SEGMENT.TEMP,0)
             self.vmWriter.writePop(self.VMWriter.SEGMENT.THAT,0)
         else:
-            self.vmWriter.writePop(getSeg(self.symbolTable.kindOf(varName)), self.symbolTable.indexOf(varName))
+            self.vmWriter.writePop(self.getSeg(self.symbolTable.kindOf(varName)), self.symbolTable.indexOf(varName))
     
 
     
     def getSeg(self, kind):
 
-        if kind == FIELD: 
-            return self.VMWriter.SEGMENT.THIS
-        elif kind == STATIC: 
-            return self.VMWriter.SEGMENT.STATIC
-        elif kind == VAR: 
-            return self.VMWriter.SEGMENT.LOCAL
-        elif kind == ARG: 
-            return self.VMWriter.SEGMENT.ARG
+        if kind == Symbol.KIND.FIELD: 
+            return VMWriter.SEGMENT.STATIC
+        elif kind == Symbol.KIND.STATIC: 
+            return VMWriter.SEGMENT.STATIC
+        elif kind == Symbol.KIND.VAR: 
+            return VMWriter.SEGMENT.LOCAL
+        elif kind == Symbol.KIND.ARG: 
+            return VMWriter.SEGMENT.ARG
         else:
-            return self.VMWriter.SEGMENT.NONE
+            return VMWriter.SEGMENT.NONE
         '''
         switch (kind){
             case FIELD:
@@ -349,18 +347,18 @@ class CompilationEngine:
 
     def compilesWhile(self):
 
-        continueLabel = newLabel()
-        topLabel = newLabel()
+        continueLabel = self.newLabel()
+        topLabel = self.newLabel()
         self.vmWriter.writeLabel(topLabel)
 
-        requireSymbol('(')
-        compileExpression()
-        requireSymbol(')')
+        self.requireSymbol('(')
+        self.compileExpression()
+        self.requireSymbol(')')
         self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NOT)
         self.vmWriter.writeIf(continueLabel)
-        requireSymbol('{')
-        compileStatement()
-        requireSymbol('}')
+        self.requireSymbol('{')
+        self.compileStatement()
+        self.requireSymbol('}')
         self.vmWriter.writeGoto(topLabel)
         self.vmWriter.writeLabel(continueLabel)
 
@@ -372,11 +370,11 @@ class CompilationEngine:
     def compileReturn(self):
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ';'):
-            self.vmWriter.writePush(self.VMWriter.SEGMENT.CONST,0)
+            self.vmWriter.writePush(VMWriter.SEGMENT.CONST,0)
         else:
             self.tokenizer.pointerBack()
-            compileExpression()
-            requireSymbol(';')
+            self.compileExpression()
+            self.requireSymbol(';')
 
         self.vmWriter.writeReturn()
 
@@ -386,21 +384,21 @@ class CompilationEngine:
         elseLabel = newLabel()
         endLabel = newLabel()
 
-        requireSymbol('(')
-        compileExpression()
-        requireSymbol(')')
+        self.requireSymbol('(')
+        self.compileExpression()
+        self.requireSymbol(')')
         self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NOT)
         self.vmWriter.writeIf(elseLabel)
-        requireSymbol('{')
-        compileStatement()
-        requireSymbol('}')
+        self.requireSymbol('{')
+        self.compileStatement()
+        self.requireSymbol('}')
         self.vmWriter.writeGoto(endLabel)
         self.vmWriter.writeLabel(elseLabel)
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.ELSE):
-            requireSymbol('{')
-            compileStatement()
-            requireSymbol('}')
+            self.requireSymbol('{')
+            self.compileStatement()
+            self.requireSymbol('}')
         else:
             self.tokenizer.pointerBack()
 
@@ -415,8 +413,8 @@ class CompilationEngine:
             self.tokenizer.advance()
             if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == '['):
                 self.vmWriter.writePush(getSeg(self.symbolTable.kindOf(tempId)),self.symbolTable.indexOf(tempId))
-                compileExpression()
-                requireSymbol(']')
+                self.compileExpression()
+                self.requireSymbol(']')
                 self.vmWriter.writeArithmetic(VMWriter.COMMAND.ADD)
                 self.vmWriter.writePop(VMWriter.SEGMENT.POINTER,1)
                 self.vmWriter.writePush(VMWriter.SEGMENT.THAT,0)
@@ -425,7 +423,7 @@ class CompilationEngine:
             (self.tokenizer.symbol() == '(' or 
             self.tokenizer.symbol() == '.')):
                 self.tokenizer.pointerBack();self.tokenizer.pointerBack()
-                compileSubroutineCall()
+                self.compileSubroutineCall()
             else:
                 self.tokenizer.pointerBack()
                 self.vmWriter.writePush(getSeg(self.symbolTable.kindOf(tempId)), self.symbolTable.indexOf(tempId))
@@ -458,7 +456,7 @@ class CompilationEngine:
             elif(self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL 
             and (self.tokenizer.symbol() == '-' or self.tokenizer.symbol() == '~')):
                 s = self.tokenizer.symbol()
-                compileTerm()
+                self.compileTerm()
                 if (s == '-'):
                     self.vmWriter.writeArithmetic(self.VMWriter.COMMAND.NEG)
                 else:
@@ -473,7 +471,7 @@ class CompilationEngine:
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
             error("identifier")
 
-        name = tokenizer.identifier()
+        name = self.tokenizer.identifier()
         nArgs = 0
 
         self.tokenizer.advance()
@@ -489,28 +487,28 @@ class CompilationEngine:
             if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
 
-            name = tokenizer.identifier()
+            name = self.tokenizer.identifier()
             typeT = self.symbolTable.typeOf(objName)
 
-            if (typeT.equals("int") or typeT.equals("boolean") or typeT.equals("char") or typeT.equals("void")):
+            if (typeT=="int" or typeT=="boolean" or typeT=="char" or typeT=="void"):
                 error("no built-in typeT")
-            elif (typeT.equals("")):
+            elif (typeT==""):
                 name = objName + "." + name
             else:
                 nArgs = 1
-                self.vmWriter.writePush(getSeg(self.symbolTable.kindOf(objName)), self.symbolTable.indexOf(objName))
+                self.vmWriter.writePush(self.getSeg(self.symbolTable.kindOf(objName)), self.symbolTable.indexOf(objName))
                 name = self.symbolTable.typeOf(objName) + "." + name
 
-            requireSymbol('(')
-            nArgs += compileExpressionList()
-            requireSymbol(')')
+            self.requireSymbol('(')
+            nArgs += self.compileExpressionList()
+            self.requireSymbol(')')
             self.vmWriter.writeCall(name,nArgs)
         else:
             error("'('|'.'")
 
     
     def compileExpression(self):
-        compileTerm()
+        self.compileTerm()
         while True:
             self.tokenizer.advance()
             if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.isOp()):
@@ -567,11 +565,11 @@ class CompilationEngine:
         else:
             nArgs = 1
             self.tokenizer.pointerBack()            
-            compileExpression()
+            self.compileExpression()
             while True:
-                tokenizer.advance()
+                self.tokenizer.advance()
                 if (self.tokenizer.tokenType() == Tokenizer.TYPE.SYMBOL and self.tokenizer.symbol() == ','):
-                    compileExpression()
+                    self.compileExpression()
                     nArgs += 1
                 else:
                     self.tokenizer.pointerBack()

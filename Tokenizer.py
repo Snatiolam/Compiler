@@ -6,6 +6,7 @@ class Tokenizer:
 
     KeyWordMap = {}
     opSet = []
+    KeyWordReg = ""
 
     class TYPE(enum.Enum):
         KEYWORD = 1
@@ -44,7 +45,7 @@ class Tokenizer:
         self.line = ""
         self.tokens = []
         self.init_keywordmap()
-        self.keyWordReg = ""
+        
         self.tokenPatterns = None
         try:
             scanner = open(inFile,'r')     
@@ -108,25 +109,26 @@ class Tokenizer:
         
         self.KeyWordReg = ""
         for seg in self.KeyWordMap.keys():
-            self.keyWordReg += seg + "|"
-
+            self.KeyWordReg += seg + "|"
+        
+        
         symbolReg = "[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]"
         intReg = "[0-9]+"
         strReg = "\"[^\"\n]*\""
         idReg = "[a-zA-Z_]\\w*"
-        self.tokenPatterns = re.compile(idReg + "|" + self.keyWordReg + symbolReg + "|" + intReg + "|" + strReg)
+        self.tokenPatterns = re.compile(idReg + "|" + self.KeyWordReg + symbolReg + "|" + intReg + "|" + strReg)
 
-    def hasMoreToken(self):
+    def hasMoreTokens(self):
         return self.pointer < len(self.tokens)
 
     def advance(self):
-        if self.hasMoreToken():
+        if self.hasMoreTokens():
             self.currentToken = self.tokens[self.pointer]
             self.pointer += 1
         else:
             raise Exception("No more tokens")
 
-        if re.match(self.keyWordReg, self.currentToken):
+        if re.match("class|method|declare|boolean|false|let|else|constructor|field|int|void|null|do|while|fun|static|char|true|this|if|return", self.currentToken):
             self.currentTokenType = self.TYPE.KEYWORD
         elif re.match("[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]", self.currentToken):
             self.currentTokenType = self.TYPE.SYMBOL
@@ -186,7 +188,7 @@ class Tokenizer:
             self.currentToken = self.tokens[self.pointer]
 
     def isOp(self):
-        return symbol() in self.opSet
+        return self.symbol() in self.opSet
 
     def noComments(self, strIn):
         position = strIn.find("//")
