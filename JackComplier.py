@@ -1,15 +1,17 @@
 import os
 import sys
+import glob
+from CompilationEngine import *
 
 class JackComplier:
 
-    def getJackFiles(self, direccion):
+    def getJackFiles(direccion):
         files = []
-        for root, dirs, files in os.walk(direccion):
-            for filename in files:
-                files.append(filename)
+        try:
+            files = os.listdir(direccion.replace("\\","")) 
+        except:
+            files = os.listdir(direccion) 
 
-        print(files)
         result = []
 
         if (files == []):
@@ -23,48 +25,47 @@ class JackComplier:
 
         return result
 
-    if __name__ == "__main__": 
-         
-        if (len(sys.argv) == 1):
-            print("Usage:python JackCompiler [filename.jack|directory]")
+if __name__ == "__main__": 
+    if (len(sys.argv) == 1):
+        print("Usage:python JackCompiler [filename.jack|directory]")
+    else:
+        fileInName = sys.argv[1]
+        fileIn = ""
+        carpeta = False
+        try:
+            fileIn = open(fileInName,'r')
+        except:
+            carpeta = True
+
+        fileOutPath = ""
+
+        fileOut = ""
+
+        jackFiles = []
+
+        if (not carpeta): 
+
+            path = fileIn
+
+            if (sys.argv[1].find(".jack") == -1): 
+                print(".jack file is required!")
+
+            jackFiles.append(fileIn)
+
         else:
-            fileInName = sys.argv[1]
-            fileIn = ""
-            carpeta = False
-            try:
-                fileIn = open(fileInName,'r')
-            except:
-                carpeta = True
+            temp = sys.argv[1]
+            jackFiles = JackComplier.getJackFiles(temp)
 
-            fileOutPath = ""
-
-            fileOut = ""
-
-            jackFiles = []
-
-            if (not carpeta): 
-
-                path = fileIn
-
-                if (sys.argv[1].find(".jack") == -1): 
-                    print(".jack file is required!")
-
-                jackFiles.append(fileIn)
-
-            else:
-                jackFiles = JackComplier(str(sys.argv[1]))
-
-                if (len(jackFiles) == 0):
-                    print("No jack file in this directory")
+            if (len(jackFiles) == 0):
+                print("No jack file in this directory")
 
 
-            for f in jackFiles:
+        for f in jackFiles:
+            fileOutPath = f[0:f.find('.jack')] + '.vm'
+            fileOut = open(fileOutPath, 'w')
 
-                fileOutPath = f.getAbsolutePath().substring(0, f.getAbsolutePath().lastIndexOf(".")) + ".vm"
-                fileOut = File(fileOutPath)
+            compilationEngine = CompilationEngine(f,fileOut)
+            compilationEngine.compileClass()
 
-                compilationEngine = CompilationEngine(f,fileOut)
-                compilationEngine.compileClass()
-
-                print("File created : " + fileOutPath)
+            print("File created : " + fileOutPath)
 
