@@ -58,10 +58,13 @@ class Tokenizer:
             self.preprocessed = self.noBlockComments(self.preprocessed).strip()
 
             self.initRegs()
-            m = self.tokenPatterns.search(self.preprocessed)
+            #m = self.tokenPatterns.search(self.preprocessed)
+            match = self.tokenPatterns.findall(self.preprocessed) # :)
+            #input(self.preprocessed)
 
-            while m.search():
-                self.tokens.append(m.group())
+            for m in match:
+                self.tokens.append(m)
+                #print(m)
 
         except:
             traceback.print_exc()
@@ -125,15 +128,15 @@ class Tokenizer:
             raise Exception("No more tokens")
 
         if re.match(self.keyWordReg, self.currentToken):
-            currentTokenType = self.TYPE.KEYWORD
+            self.currentTokenType = self.TYPE.KEYWORD
         elif re.match("[\\&\\*\\+\\(\\)\\.\\/\\,\\-\\]\\;\\~\\}\\|\\{\\>\\=\\[\\<]", self.currentToken):
-            currentTokenType = TYPE.SYMBOL
+            self.currentTokenType = self.TYPE.SYMBOL
         elif re.match("[0-9]+", self.currentToken):
-            currentTokenType = TYPE.INT_CONST
+            self.currentTokenType = self.TYPE.INT_CONST
         elif re.match("\"[^\"\n]*\"", self.currentToken):
-            currentTokenType = TYPE.STRING_CONST
+            self.currentTokenType = self.TYPE.STRING_CONST
         elif re.match("[a-zA-Z_]\\w*", self.currentToken):
-            currentTokenType = TYPE.IDENTIFIER
+            self.currentTokenType = self.TYPE.IDENTIFIER
         else:
             raise Exception("Unknow token:" + self.currentToken)
 
@@ -144,39 +147,40 @@ class Tokenizer:
         return self.currentTokenType
 
     def keyWord(self):
-        if currentTokenType == TYPE.self.KEYWORD:
-            return keyWordMap[self.currentToken]
+        if self.currentTokenType == self.TYPE.KEYWORD:
+            return self.KeyWordMap[self.currentToken]
         else:
             raise Exception("Current token is not a keyword")
 
     def symbol(self):
-        if currentTokenType == TYPE.SYMBOL:
+        if self.currentTokenType == self.TYPE.SYMBOL:
             return self.currentToken[0]
         else:
             raise Exception("Current token is not  a symbol")
 
     def identifier(self):
-        if currentTokenType == TYPE.IDENTIFIER:
+        print(self.currentTokenType)
+        if self.currentTokenType == self.TYPE.IDENTIFIER:
             return self.currentToken
         else:
             raise Exception("Current token is not a identifier")
 
     def intVal(self):
-        if currentTokenType == TYPE.INT_CONST:
+        if self.currentTokenType == self.TYPE.INT_CONST:
             return int(self.currentToken)
         else:
             raise Exception("Current token is not an integer constant")
 
     def stringVal(self):
-        if currentTokenType == TYPE.STRING_CONST:
+        if self.currentTokenType == self.TYPE.STRING_CONST:
             return self.currentToken[1: len(self.currentToken) - 1]
         else:
             raise Exception("Current token is not a string constant")
 
     def pointerBack(self):
-        if pointer > 0:
-            pointer -= 1
-            self.currentToken = tokens[pointer]
+        if self.pointer > 0:
+            self.pointer -= 1
+            self.currentToken = self.tokens[pointer]
 
     def isOp(self):
         return symbol() in self.opSet

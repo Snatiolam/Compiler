@@ -33,7 +33,7 @@ class CompilationEngine:
         if self.tokenizer.tokenType() == Tokenizer.TYPE.IDENTIFIER:
             return self.tokenizer.identifier()
 
-        error("in|char|boolean|className")
+        self.error("in|char|boolean|className")
 
 
         return ""
@@ -48,7 +48,7 @@ class CompilationEngine:
         self.tokenizer.advance()
 
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
-            error("className")
+            self.error("className")
         
 
         
