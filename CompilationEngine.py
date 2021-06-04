@@ -52,14 +52,14 @@ class CompilationEngine:
         
 
         
-        currentClass = self.tokenizer.identifier()
-        requireSymbol('{')
-        compileClassVarDec()
-        compileSubroutine()
-        requireSymbol('}')
+        self.currentClass = self.tokenizer.identifier()
+        self.requireSymbol('{')
+        self.compileClassVarDec()
+        self.compileSubroutine()
+        self.requireSymbol('}')
 
         if (tokenizer.hasMoreTokens()):
-            error("Unexpected tokens")
+            self.error("Unexpected tokens")
         
         self.vmWriter.close()
 
@@ -81,7 +81,7 @@ class CompilationEngine:
             error("static or field")
         
         kind = None
-        type = ""
+        typeT = ""
         name = ""
 
         dict = {
@@ -96,7 +96,7 @@ class CompilationEngine:
             case FIELD:kind = Symbol.KIND.FIELD;break;
         }
         '''
-        type = compileType()
+        typeT = compileType()
         varNamesDone = False
         while True:
             self.tokenizer.advance()
@@ -105,7 +105,7 @@ class CompilationEngine:
             
             name = self.tokenizer.identifier()
 
-            self.symbolTable.define(name,type,kind)
+            self.symbolTable.define(name,typeT,kind)
 
             self.tokenizer.advance()
 
@@ -136,29 +136,29 @@ class CompilationEngine:
         if (self.tokenizer.keyWord() == Tokenizer.KEYWORD.METHOD):
             self.symbolTable.define("this",self.currentClass, Symbol.KIND.ARG)
 
-        type = ""
+        typeT = ""
 
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() == Tokenizer.TYPE.KEYWORD and self.tokenizer.keyWord() == Tokenizer.KEYWORD.VOID):
-            type = "void"
+            typeT = "void"
         else:
             self.tokenizer.pointerBack()
-            type = compileType()
+            typeT = compileType()
         
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
-            error("subroutineName")
+            self.error("subroutineName")
 
         currentSubroutine = self.tokenizer.identifier()
 
         
-        requireSymbol('(')
+        self.requireSymbol('(')
 
         
-        compileParameterList()
+        self.compileParameterList()
 
         
-        requireSymbol(')')
+        self.requireSymbol(')')
 
         compileSubroutineBody(keyword)
 
@@ -232,16 +232,16 @@ class CompilationEngine:
             self.tokenizer.pointerBack()
             return
 
-        type = ""
+        typeT = ""
 
         self.tokenizer.pointerBack()
         while True:
-            type = compileType()
+            typeT = self.compileType()
             self.tokenizer.advance()
             if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
 
-            self.symbolTable.define(self.tokenizer.identifier(),type, Symbol.KIND.ARG)
+            self.symbolTable.define(self.tokenizer.identifier(),typeT, Symbol.KIND.ARG)
 
             self.tokenizer.advance()
             if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and tokenizer.symbol() != ')')):
@@ -258,7 +258,7 @@ class CompilationEngine:
             return
 
         
-        type = compileType()
+        typeT = compileType()
         varNamesDone = False
 
         while True:
@@ -267,7 +267,7 @@ class CompilationEngine:
             if (self.tokenizer.tokenType() != Tokenizer.TYPE.IDENTIFIER):
                 error("identifier")
             
-            self.symbolTable.define(self.tokenizer.identifier(),type, Symbol.KIND.VAR)
+            self.symbolTable.define(self.tokenizer.identifier(),typeT, Symbol.KIND.VAR)
             self.tokenizer.advance()
 
             if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or (self.tokenizer.symbol() != ',' and self.tokenizer.symbol() != ';')):
@@ -490,11 +490,11 @@ class CompilationEngine:
                 error("identifier")
 
             name = tokenizer.identifier()
-            type = self.symbolTable.typeOf(objName)
+            typeT = self.symbolTable.typeOf(objName)
 
-            if (type.equals("int") or type.equals("boolean") or type.equals("char") or type.equals("void")):
-                error("no built-in type")
-            elif (type.equals("")):
+            if (typeT.equals("int") or typeT.equals("boolean") or typeT.equals("char") or typeT.equals("void")):
+                error("no built-in typeT")
+            elif (typeT.equals("")):
                 name = objName + "." + name
             else:
                 nArgs = 1
@@ -585,5 +585,5 @@ class CompilationEngine:
     def requireSymbol(self, symbol):
         self.tokenizer.advance()
         if (self.tokenizer.tokenType() != Tokenizer.TYPE.SYMBOL or self.tokenizer.symbol() != symbol):
-            error("'" + symbol + "'")
+            self.error("'" + symbol + "'")
     

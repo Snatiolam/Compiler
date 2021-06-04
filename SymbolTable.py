@@ -15,7 +15,7 @@ class SymbolTable:
 
 
     def startSubroutine(self):
-        subroutineSymbols.clear()
+        self.subroutineSymbols.clear()
         self.indices[Symbol.KIND.VAR] = 0
         self.indices[Symbol.KIND.ARG] = 0
 
