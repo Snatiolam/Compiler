@@ -5,6 +5,7 @@ import traceback
 class Tokenizer:
 
     KeyWordMap = {}
+    opSet = []
 
     class TYPE(enum.Enum):
         KEYWORD = 1
@@ -42,6 +43,7 @@ class Tokenizer:
             scanner = open(inFile, "r")
             preprocessed = ""
             line = ""
+            init_keywordmap()
 
             for lineN in scanner.readlines():
                 line = noComments(lineN).strip()
@@ -63,6 +65,39 @@ class Tokenizer:
 
         currentToken = ""
         currentTokenType = TYPE.NONE
+
+    def init_keywordmap(self):
+        KeyWordMap["class"] = KEYWORD.CLASS
+        KeyWordMap["method"] = KEYWORD.METHOD
+        KeyWordMap["declare"] = KEYWORD.VAR
+        KeyWordMap["boolean"] = KEYWORD.BOOLEAN
+        KeyWordMap["false"] = KEYWORD.FALSE
+        KeyWordMap["let"] = KEYWORD.LET
+        KeyWordMap["else"] = KEYWORD.ELSE
+        KeyWordMap["constructor"] = KEYWORD.CONSTRUCTOR
+        KeyWordMap["field"] = KEYWORD.FIELD
+        KeyWordMap["int"] = KEYWORD.INT
+        KeyWordMap["void"] = KEYWORD.VOID
+        KeyWordMap["null"] = KEYWORD.NULL
+        KeyWordMap["do"] = KEYWORD.DO
+        KeyWordMap["while"] = KEYWORD.WHILE
+        KeyWordMap["fun"] = KEYWORD.FUNCTION
+        KeyWordMap["static"] = KEYWORD.STATIC
+        KeyWordMap["char"] = KEYWORD.CHAR
+        KeyWordMap["true"] = KEYWORD.TRUE
+        KeyWordMap["this"] = KEYWORD.THIS
+        KeyWordMap["if"] = KEYWORD.IF
+        KeyWordMap["return"] = KEYWORD.RETURN
+
+        opSet.append('+')
+        opSet.append('-')
+        opSet.append('*')
+        opSet.append('/')
+        opSet.append('&')
+        opSet.append('|')
+        opSet.append('<')
+        opSet.append('>')
+        opSet.append('=')
 
     def initReg(self):
         
